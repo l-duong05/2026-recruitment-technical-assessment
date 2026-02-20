@@ -157,5 +157,106 @@ describe("Task 3", () => {
       const resp3 = await getTask3("Skibidi");
       expect(resp3.status).toBe(200);
     });
+
+    it("Testing return type of Skibidi", async () => {
+      const skib = {
+        type: "recipe",
+        name: "Skibidi Spag",
+        requiredItems: [
+          {
+            name: "Meatball",
+            quantity: 3
+          },
+          {
+            name: "Pasta",
+            quantity: 1
+          },
+          {
+            name: "Tomato",
+            quantity: 2
+          }
+        ]
+      };
+      const balls = {
+        type: "recipe",
+        name: "Meatball",
+        requiredItems: [
+          {
+            name: "Beef",
+            quantity: 2
+          },
+          {
+            name: "Egg",
+            quantity: 1
+          }
+        ]
+      };
+      const pasta = {
+        type: "recipe",
+        name: "Pasta",
+        requiredItems: [
+          {
+            name: "Flour",
+            quantity: 3
+          },
+          {
+            name: "Egg",
+            quantity: 1
+          }
+        ]
+      };
+      const resp1 = await postEntry(skib);
+      expect(resp1.status).toBe(200);
+
+      await postEntry(balls);
+      await postEntry(pasta);
+
+      const resp2 = await postEntry({
+        type: "ingredient",
+        name: "Beef",
+        cookTime: 5
+      });
+      await postEntry({
+        type: "ingredient",
+        name: "Egg",
+        cookTime: 3,
+      });
+      await postEntry({
+        type: "ingredient",
+        name: "Flour",
+        cookTime: 0,
+      });
+      await postEntry({
+        type: "ingredient",
+        name: "Tomato",
+        cookTime: 2,
+      });
+      expect(resp2.status).toBe(200);
+
+      const resp3 = await getTask3("Skibidi Spag");
+      expect(resp3.status).toBe(200);
+      expect(resp3.body).toBe({
+        "name": "Skibidi Spag",
+        "cookTime": 46,
+        "ingredients": [
+          {
+            "name": "Beef",
+            "quantity": 6
+          },
+          {
+            "name": "Flour",
+            "quantity": 3
+          },
+          {
+            "name": "Egg",
+            "quantity": 4
+          },
+          {
+            "name": "Tomato",
+            "quantity": 2
+          }
+        ]
+      });
+    });
   });
 });
