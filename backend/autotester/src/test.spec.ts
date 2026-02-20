@@ -182,7 +182,7 @@ describe("Task 3", () => {
         name: "Meatball",
         requiredItems: [
           {
-            name: "Beef",
+            name: "Beefy",
             quantity: 2
           },
           {
@@ -208,12 +208,9 @@ describe("Task 3", () => {
       const resp1 = await postEntry(skib);
       expect(resp1.status).toBe(200);
 
-      await postEntry(balls);
-      await postEntry(pasta);
-
       const resp2 = await postEntry({
         type: "ingredient",
-        name: "Beef",
+        name: "Beefy",
         cookTime: 5
       });
       await postEntry({
@@ -233,23 +230,26 @@ describe("Task 3", () => {
       });
       expect(resp2.status).toBe(200);
 
+      await postEntry(balls);
+      await postEntry(pasta);
+
       const resp3 = await getTask3("Skibidi Spag");
       expect(resp3.status).toBe(200);
-      expect(resp3.body).toBe({
+      expect(resp3.body).toStrictEqual({
         "name": "Skibidi Spag",
         "cookTime": 46,
         "ingredients": [
           {
-            "name": "Beef",
+            "name": "Beefy",
             "quantity": 6
-          },
-          {
-            "name": "Flour",
-            "quantity": 3
           },
           {
             "name": "Egg",
             "quantity": 4
+          },
+          {
+            "name": "Flour",
+            "quantity": 3
           },
           {
             "name": "Tomato",
