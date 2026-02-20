@@ -27,7 +27,7 @@ const app = express();
 app.use(express.json());
 
 // Store your recipes here!
-const cookbook: any = [];
+const cookbook: cookbookEntry[] = [];
 
 // Task 1 helper (don't touch)
 app.post("/parse", (req:Request, res:Response) => {
@@ -76,9 +76,10 @@ app.post("/entry", (req:Request, res:Response) => {
     return res.status(400).send("Entry name must be unique.");
   }
 
-  if (entry.requiredItems) {
-    let requiredSet = new Set<string>(entry.requiredItems.map(item => item.name));
-    if (requiredSet.size !== entry.requiredItems.length) {
+  let requiredItems: (ingredient | recipe)[] = entry.requiredItems;
+  if (requiredItems) {
+    let requiredSet = new Set<string>(requiredItems.map(item => item.name));
+    if (requiredSet.size !== requiredItems.length) {
       return res.status(400).send("Required items must only have one element per name.");
     }
   }
@@ -92,14 +93,14 @@ app.post("/entry", (req:Request, res:Response) => {
 app.get("/summary", (req:Request, res:Request) => {
   const recipeName = req.query.name;
 
-  const recipe = cookbook.find(r => r.name === recipeName);
-  if (!recipe || recipe.type !== "recipe") {
+  const entry = cookbook.find(r => r.name === recipeName);
+  if (!entry || entry.type !== "recipe") {
     return res.status(400).send("Invalid recipe.");
   }
 
   let ingredients = [];
   let totalCookTime = 0;
-  if (summarise(recipe.requiredItems, ingredients, totalCookTime)) {
+  if (summarise((entry as recipe).requiredItems, ingredients, totalCookTime)) {
     res.body = {
       "name": recipeName,
       "cookTime": totalCookTime,
@@ -111,7 +112,7 @@ app.get("/summary", (req:Request, res:Request) => {
   }
 });
 
-const summarise = (requirements, ingredients, totalCookTime) => {
+const summarise = (requirements: requiredItem[], ingredients: requiredItem[], totalCookTime: number) => {
   for (let reqItem of requirements) {
     const item = cookbook.find(r => r.name === reqItem.name);
     if (!item) {
@@ -119,16 +120,16 @@ const summarise = (requirements, ingredients, totalCookTime) => {
     }
 
     if (item.type === "ingredient") {
-      totalCookTime += item.cookTime;
+      totalCookTime += (item as ingredient).cookTime;
       const ingredient = ingredients.find(i => i.name === item.name);
       if (!ingredient) {
         ingredients.push({
           "name": item.name,
-          "quantity": item.quantity
+          "quantity": reqItem.quantity
         });
       }
     } else {
-      if (!summarise(item.requiredItems, ingredients, totalCookTime)) return false;
+      if (!summarise((item as recipe).requiredItems, ingredients, totalCookTime)) return false;
     }
   }
 
