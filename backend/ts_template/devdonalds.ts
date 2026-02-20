@@ -90,10 +90,50 @@ app.post("/entry", (req:Request, res:Response) => {
 // [TASK 3] ====================================================================
 // Endpoint that returns a summary of a recipe that corresponds to a query name
 app.get("/summary", (req:Request, res:Request) => {
-  // TODO: implement me
-  res.status(500).send("not yet implemented!")
+  const recipeName = req.query.name;
 
+  const recipe = cookbook.find(r => r.name === recipeName);
+  if (!recipe || recipe.type !== "recipe") {
+    return res.status(400).send("Invalid recipe.");
+  }
+
+  let ingredients = [];
+  let totalCookTime = 0;
+  if (summarise(recipe.requiredItems, ingredients, totalCookTime)) {
+    res.body = {
+      "name": recipeName,
+      "cookTime": totalCookTime,
+      "ingredients": ingredients
+    };
+    return res.status(200).send("Success.");
+  } else {
+    return res.status(400).send("Invalid.");
+  }
 });
+
+const summarise = (requirements, ingredients, totalCookTime) => {
+  for (let reqItem of requirements) {
+    const item = cookbook.find(r => r.name === reqItem.name);
+    if (!item) {
+      return false;
+    }
+
+    if (item.type === "ingredient") {
+      totalCookTime += item.cookTime;
+      const ingredient = ingredients.find(i => i.name === item.name);
+      if (!ingredient) {
+        ingredients.push({
+          "name": item.name,
+          "quantity": item.quantity
+        });
+      }
+    } else {
+      if (!summarise(item.requiredItems, ingredients, totalCookTime)) return false;
+    }
+  }
+
+  return true;
+};
 
 // =============================================================================
 // ==== DO NOT TOUCH ===========================================================
