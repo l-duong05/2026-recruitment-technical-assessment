@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { parse } from "path";
 
 // ==== Type Definitions, feel free to add or modify ==========================
 interface cookbookEntry {
@@ -45,8 +46,17 @@ app.post("/parse", (req:Request, res:Response) => {
 // [TASK 1] ====================================================================
 // Takes in a recipeName and returns it in a form that 
 const parse_handwriting = (recipeName: string): string | null => {
-  // TODO: implement me
-  return recipeName
+  let parsed = recipeName.replace(/[\s\-_]+/, " ");
+  parsed = parsed.replace(/[^A-Za-z\s]/g, "");
+  let split_name = parsed.split(" ")
+                    .filter(str => str.length > 0)
+                    .map(str => str.toLowerCase())
+                    .map(str => str[0].toUpperCase() + str.slice(1));
+
+  parsed = split_name.join(" ");
+  if (parsed.length === 0) return null;
+    
+  return parsed;
 }
 
 // [TASK 2] ====================================================================
